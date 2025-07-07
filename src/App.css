@@ -13,3 +13,23 @@
   border-radius: 5px;
   background-color: #9cbae5;
 }
+
+.task {
+  font-weight: 600;
+}
+
+.task-done {
+  opacity: 0.5;
+  text-decoration:  line-through;
+}
+
+.btn-filter-active {
+  background-color: #02c8f6;
+  color: white;
+  border-color: #15f3bd;
+}
+
+.input-error {
+  border: 2px solid red;
+  outline: none;
+}
