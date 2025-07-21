@@ -2,17 +2,18 @@ import './App.css'
 import {Task, Todolist} from "./Todolist.tsx";
 import {useState} from "react";
 import {v1} from "uuid";
+import {CreateItemForm} from "./CreateItemForm.tsx";
 
 //CRUD
 export type FilterValues = "all" | "active" | "completed";
 
-type TodolistType = {
+export type TodolistType = {
     id: string
     title: string
     filter: FilterValues
 }
 
-type TasksState = {
+export type TasksState = {
     [todolistId: string]: Task[]
 }
 
@@ -27,9 +28,6 @@ function App() {
         {id: todolistId_2, title: "What to buy", filter: "all"}
     ]);
 
-
-
-    // const todolistTitle1 = "What to learn"
 
     let [tasks, setTasks] = useState<TasksState>({
         [todolistId_1]: [
@@ -50,13 +48,13 @@ function App() {
 )
 
     //delete
-    const deleteTask = (taskId: Task['id'], todolistId: string) => {
+    const deleteTask = (taskId: Task['id'], todolistId: TodolistType["id"]) => {
         //1.Иммутабельно
         //2. Для обновления стейта используется setState
         setTasks({...tasks, [todolistId]: tasks[todolistId].filter(t => t.id !== taskId)})
     }
     // create
-    const createTask = (title: string, todolistId: string) => {
+    const createTask = (title: Task["title"], todolistId: TodolistType["id"]) => {
         const newTask: Task = {id:v1(), title, isDone:false}
         const newTasks = [...tasks[todolistId],  newTask]
         setTasks({...tasks, [todolistId]: newTasks})
@@ -67,17 +65,40 @@ function App() {
         const updatedTasks: Task[] = tasks[todolistId].map(t => t.id === taskId ? {...t, isDone: newStatus } : t)
         setTasks({...tasks, [todolistId]: updatedTasks})
     }
+//  update task title
+    const changeTaskTitle = (taskId: Task['id'], newTitle: Task["title"], todolistId: string) => {
+        const updatedTasks: Task[] = tasks[todolistId].map(t => t.id === taskId ? {...t, title: newTitle } : t)
+        setTasks({...tasks, [todolistId]: updatedTasks})
+    }
 
-    const changeTodolistFilter = (nextFilter: FilterValues, todolistId: string) => {
-        const nextState: TodolistType[] = todolists.map(tl => tl.id === todolistId ? {...tl, filter: nextFilter} : tl)
+    const changeTodolistFilter = (newFilter: FilterValues, todolistId: TodolistType["id"]) => {
+        const nextState: TodolistType[] = todolists.map(tl => tl.id === todolistId ? {...tl, filter: newFilter} : tl)
+        setTodolists(nextState)
+    }
+    //update Todolist title
+    const changeTodolistTitle = (newTitle: TodolistType["title"], todolistId: TodolistType["id"]) => {
+        const nextState: TodolistType[] = todolists.map(tl => tl.id === todolistId ? {...tl, title: newTitle} : tl)
         setTodolists(nextState)
     }
 
-    const deleteTodolist = ( todolistId: string) => {
+    const deleteTodolist = ( todolistId: TodolistType["id"]) => {
         const nextState: TodolistType[] = todolists.filter(t => t.id !== todolistId)
         setTodolists(nextState)
         delete tasks[todolistId]
     }
+
+    //Функция  добавления Todolist нового
+    const createTodolist = (todolistTitle: TodolistType["title"]) => {
+        const todolistId = v1()
+        const newTodolist: TodolistType = {
+            id: todolistId,
+            title: todolistTitle,
+            filter: "all"
+        }
+        setTodolists([...todolists, newTodolist])
+        setTasks({...tasks, [todolistId]: []})
+    }
+
 
   //   UI (view)
     const todolistsComponents = todolists.map(tl => {
@@ -98,21 +119,21 @@ function App() {
 
                 deleteTodolist={deleteTodolist}
                 changeTodolistFilter={changeTodolistFilter}
+                changeTodolistTitle={changeTodolistTitle}
 
                 deleteTask={deleteTask}
                 createTask={createTask}
                 changeTaskStatus={changeTaskStatus}
+                changeTaskTitle={changeTaskTitle}
             />
             )
     })
 
 
 
-
-
-
   return (
       <div className="app">
+          <CreateItemForm createItem={createTodolist} itemTitleLength={20}/>
           {todolistsComponents}
       </div>
   )

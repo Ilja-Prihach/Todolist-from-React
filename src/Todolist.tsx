@@ -1,6 +1,8 @@
 import {Button} from "./Button.tsx";
-import {FilterValues} from "./App.tsx";
-import {ChangeEvent, useState, KeyboardEvent} from "react";
+import {FilterValues, TodolistType} from "./App.tsx";
+//import {ChangeEvent, useState, KeyboardEvent} from "react";
+import {CreateItemForm} from "./CreateItemForm.tsx";
+import {EditableSpan} from "./EditableSpan.tsx";
 // import {useRef} from "react";
 
 type Props = {
@@ -8,11 +10,16 @@ type Props = {
     title: string
     tasks: Task[]
     filter: FilterValues
-    deleteTodolist: (todolistId: string) => void;
+
+    deleteTodolist: (todolistId: string) => void
+    changeTodolistFilter:  (filterValue: FilterValues, todolistId: TodolistType['id']) => void
+    changeTodolistTitle : (newtTitle: TodolistType["title"], todolistId: TodolistType["id"])=> void
+
+
     deleteTask: (taskId: Task['id'], todolistId: string) => void
-    changeTodolistFilter:  (filterValue: FilterValues, todolistId: string) => void
-    createTask : (title: string, todolistId: string) => void;
-    changeTaskStatus:  (taskId: Task['id'], newStatus: Task["isDone"], todolistId: string) => void;
+    createTask : (title: Task['title'], todolistId: string) => void
+    changeTaskStatus:  (taskId: Task['id'], newStatus: Task["isDone"], todolistId: TodolistType['id']) => void;
+    changeTaskTitle: (taskId: Task['id'], newTitle: Task["title"], todolistId: TodolistType['id']) => void
 }
 export type Task = {
     id:string
@@ -27,11 +34,16 @@ export const Todolist = (
         tasks,
         filter,
         todolistId,
+
         deleteTask,
-        deleteTodolist,
-        changeTodolistFilter,
         createTask,
         changeTaskStatus,
+        changeTaskTitle,
+
+        deleteTodolist,
+        changeTodolistFilter,
+        changeTodolistTitle,
+
     }: Props)=> {
     // const title = props.title
     // const tasks = props.tasks
@@ -42,14 +54,14 @@ export const Todolist = (
 
     // const inputRef = useRef<HTMLInputElement>(null);
 
-    // Локальный стейт для input
-    const [taskTitle, setTaskTitle] = useState("");
-    const [error, setError] = useState(false);
 
     const tasksList = tasks.length === 0
      ? <span> Your tasklist is empty</span>
      :  <ul>
             {tasks.map(task => {
+                const changeTaskTitleHandler = (newTitle: Task["title"]) => {
+                    changeTaskTitle(task.id, newTitle, todolistId)
+                }
                 const deleteTaskOnClickHandler = () => deleteTask(task.id, todolistId);
                 return(
                     <li key={task.id} >
@@ -58,7 +70,9 @@ export const Todolist = (
                             checked={task.isDone}
                             onChange={(e) => changeTaskStatus(task.id, e.currentTarget.checked, todolistId)}
                         />
-                        <span className={task.isDone ? "task-done" : "task"}>{task.title}</span>
+                        <EditableSpan title={task.title}
+                                      changeItemTitle={changeTaskTitleHandler}
+                                      classes={task.isDone ? "task-done" : "task"}/>
                         <Button title={'x'} onClickHandler={deleteTaskOnClickHandler}/>
                     </li>
                 )
@@ -66,57 +80,26 @@ export const Todolist = (
         </ul>
 
     // Функция создания таски
-    const createTaskHandler = () => {
-        const trimmedTitle = taskTitle.trim()
-        if (trimmedTitle) {
-            createTask(trimmedTitle, todolistId)
-        } else {
-            setError(true)
-        }
-        setTaskTitle("")
+    const createTaskHandler = (taskTitle: string) => {
+            createTask(taskTitle, todolistId)
     }
 
-    //Ввод в input значения title
-    const onChangeTaskTitleHandler = (e:ChangeEvent<HTMLInputElement>) =>{
-        error && setError(false)
-        setTaskTitle(e.currentTarget.value)
+    //функция изменения заголовка тудулиста
+    const changeTodolistTitleHandler = (newTitle: string) => {
+        changeTodolistTitle(newTitle, todolistId)
     }
-
-
-    // функция добавлен таски
-    const onKeyDownCreateTaskHandler = (e: KeyboardEvent<HTMLInputElement>) => {
-        if(e.key === "Enter" && isAddTaskPossible) {
-            createTaskHandler()
-        }}
-    // Условия добавления таски, первичная валидация
-    const isAddTaskPossible = taskTitle !== "" && taskTitle.length <= 15
-
 
     return (
         <div className="todolist">
             <div>
                 <h3>
-                    {title}
+                    <EditableSpan
+                        title={title}
+                        changeItemTitle={changeTodolistTitleHandler}
+                    />
                     <Button title="x" onClickHandler={() => deleteTodolist(todolistId)}/>
                 </h3>
-                <div>
-                    <input
-                        value={taskTitle}
-                        onChange={onChangeTaskTitleHandler}
-                        onKeyDown={onKeyDownCreateTaskHandler}
-                        placeholder="max 15 charters"
-                        className={error ? "input-error" : ""}
-                        // ref={inputRef}
-                    />
-                    <Button title={"+"}
-                            disabled={!isAddTaskPossible}
-                            onClickHandler={
-                                createTaskHandler
-                        }/>
-                    {taskTitle && taskTitle.length <= 15 && <div>rest {15-taskTitle.length} charters</div>}
-                    {taskTitle && taskTitle.length > 15 && <div style={{color: "red"}}>title is too long</div>}
-                    {error && <div style={{color: "red"}}>Enter valid Title</div>}
-                </div>
+                <CreateItemForm createItem={createTaskHandler} itemTitleLength={15}/>
                 {tasksList}
                 <div>
                     <Button title={"All"}
