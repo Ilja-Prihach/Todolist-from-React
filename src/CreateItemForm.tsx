@@ -1,5 +1,7 @@
-import {Button} from "./Button.tsx";
+// import {Button} from "./Button.tsx";
 import {ChangeEvent, KeyboardEvent, useState} from "react";
+import {IconButton, TextField} from "@mui/material";
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 type Props = {
     createItem: (itemTitle: string) => void;
@@ -37,18 +39,30 @@ export const CreateItemForm = ({createItem, itemTitleLength} : Props) => {
 
     return (
         <div>
-            <input
+            <TextField
+                size="small"
+                variant="outlined"
                 value={itemTitle}
+                error={error}
                 onChange={onChangeItemTitleHandler}
                 onKeyDown={onKeyDownCreateItemHandler}
                 placeholder={`max ${itemTitleLength} charters`}
-                className={error ? "input-error" : ""}
+                // className={error ? "input-error" : ""}
             />
-            <Button title={"+"}
-                    disabled={!isAddTaskPossible}
-                    onClickHandler={
-                        createItemHandler
-                    }/>
+            {/*<Button title={"+"}*/}
+            {/*        disabled={!isAddTaskPossible}*/}
+            {/*        onClickHandler={*/}
+            {/*            createItemHandler*/}
+            {/*        }/>*/}
+
+            <IconButton
+                size="small"
+                disabled={!isAddTaskPossible}
+                onClick={createItemHandler}
+            >
+                <AddCircleOutlineIcon fontSize="large" />
+            </IconButton>
+
             {itemTitle && itemTitle.length <= itemTitleLength && <div>rest {itemTitleLength-itemTitle.length} charters</div>}
             {itemTitle && itemTitle.length > itemTitleLength && <div style={{color: "red"}}>title is too long</div>}
             {error && <div style={{color: "red"}}>Enter valid Title</div>}

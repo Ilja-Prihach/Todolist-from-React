@@ -1,4 +1,5 @@
 import {ChangeEvent, useState} from "react";
+import {TextField} from "@mui/material";
 
 type Props = {
     title: string;
@@ -19,7 +20,8 @@ export const EditableSpan = ({title, changeItemTitle, classes}: Props) => {
     }
     return (
         editMode
-        ? <input
+        ? <TextField
+            variant="standard"
             value={itemTitle}
             onChange={onChangeItemTitleHandler}
             autoFocus

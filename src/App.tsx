@@ -3,6 +3,12 @@ import {Task, Todolist} from "./Todolist.tsx";
 import {useState} from "react";
 import {v1} from "uuid";
 import {CreateItemForm} from "./CreateItemForm.tsx";
+import AppBar from '@mui/material/AppBar'
+import Toolbar from '@mui/material/Toolbar'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import MenuIcon from '@mui/icons-material/Menu'
+import {Container, Grid, Paper} from "@mui/material";
 
 //CRUD
 export type FilterValues = "all" | "active" | "completed";
@@ -110,22 +116,28 @@ function App() {
             filteredTasks = filteredTasks.filter((t) => t.isDone)
         }
         return(
-            <Todolist
-                key={tl.id}
-                todolistId={tl.id}
-                title={tl.title}
-                tasks={filteredTasks}
-                filter={tl.filter}
+            <Grid key={tl.id}>
+                <Paper
+                    elevation={2}
+                >
+                    <Todolist
+                        todolistId={tl.id}
+                        title={tl.title}
+                        tasks={filteredTasks}
+                        filter={tl.filter}
 
-                deleteTodolist={deleteTodolist}
-                changeTodolistFilter={changeTodolistFilter}
-                changeTodolistTitle={changeTodolistTitle}
+                        deleteTodolist={deleteTodolist}
+                        changeTodolistFilter={changeTodolistFilter}
+                        changeTodolistTitle={changeTodolistTitle}
 
-                deleteTask={deleteTask}
-                createTask={createTask}
-                changeTaskStatus={changeTaskStatus}
-                changeTaskTitle={changeTaskTitle}
-            />
+                        deleteTask={deleteTask}
+                        createTask={createTask}
+                        changeTaskStatus={changeTaskStatus}
+                        changeTaskTitle={changeTaskTitle}
+                    />
+                </Paper>
+            </Grid>
+
             )
     })
 
@@ -133,8 +145,25 @@ function App() {
 
   return (
       <div className="app">
-          <CreateItemForm createItem={createTodolist} itemTitleLength={20}/>
-          {todolistsComponents}
+          <AppBar position="static">
+              <Toolbar>
+                  <IconButton color="inherit">
+                      <MenuIcon />
+                  </IconButton>
+                  <Button color="inherit">Sign in</Button>
+              </Toolbar>
+          </AppBar>
+          <Container maxWidth={"lg"}>
+              <Grid container>
+                  <CreateItemForm createItem={createTodolist} itemTitleLength={20}/>
+              </Grid>
+              <Grid container spacing={3}>
+                  {todolistsComponents}
+              </Grid>
+
+          </Container>
+
+
       </div>
   )
 }

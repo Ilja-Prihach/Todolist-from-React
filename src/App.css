@@ -1,17 +1,24 @@
 .app {
-  padding: 30px;
   display: flex;
+  flex-direction: column;
+  width: 100vw;
 }
 
-.app > div {
-  margin-right: 50px;
+.container {
+  display: flex;
+  align-items: center;
+}
+
+.is-done {
+  opacity: 0.5;
 }
 
 .todolist {
+  width: max-content;
   padding: 10px;
   border: 2px solid gray;
   border-radius: 5px;
-  background-color: #9cbae5;
+  background-color: #c8ccd9;
 }
 
 .task {
