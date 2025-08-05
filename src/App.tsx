@@ -1,14 +1,25 @@
 import './App.css'
 import {Task, Todolist} from "./Todolist.tsx";
-import {useState} from "react";
+import {useReducer, useState} from "react";
 import {v1} from "uuid";
 import {CreateItemForm} from "./CreateItemForm.tsx";
 import AppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
-import Button from '@mui/material/Button'
+// import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import MenuIcon from '@mui/icons-material/Menu'
-import {Container, Grid, Paper} from "@mui/material";
+import {Box, Container, CssBaseline, Grid, Paper} from "@mui/material";
+import {NavButton} from "./NavButton.ts";
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+// import {blue, green, grey, orange} from "@mui/material/colors";
+import Switch from '@mui/material/Switch';
+import {amber, teal} from "@mui/material/colors";
+import {
+    changeTodolistFilterAC, changeTodolistTitleAC,
+    createTodolistAC,
+    deleteTodolistAC,
+    todolistsReducer
+} from "./model/todolist-reducer.ts";
 
 //CRUD
 export type FilterValues = "all" | "active" | "completed";
@@ -29,7 +40,12 @@ function App() {
     const todolistId_1 = v1()
     const todolistId_2 = v1()
 
-    const [todolists, setTodolists] = useState<TodolistType[]>([
+    // const [todolists, setTodolists] = useState<TodolistType[]>([
+    //     {id: todolistId_1, title: "What to lern", filter: "all"},
+    //     {id: todolistId_2, title: "What to buy", filter: "all"}
+    // ]);
+
+    const [todolists, dispatchTodolists] = useReducer(todolistsReducer, [
         {id: todolistId_1, title: "What to lern", filter: "all"},
         {id: todolistId_2, title: "What to buy", filter: "all"}
     ]);
@@ -77,36 +93,59 @@ function App() {
         setTasks({...tasks, [todolistId]: updatedTasks})
     }
 
+
     const changeTodolistFilter = (newFilter: FilterValues, todolistId: TodolistType["id"]) => {
-        const nextState: TodolistType[] = todolists.map(tl => tl.id === todolistId ? {...tl, filter: newFilter} : tl)
-        setTodolists(nextState)
+        // const nextState: TodolistType[] = todolists.map(tl => tl.id === todolistId ? {...tl, filter: newFilter} : tl)
+        // setTodolists(nextState)
+        const action = changeTodolistFilterAC({id: todolistId, filter: newFilter})
+        dispatchTodolists(action)
     }
     //update Todolist title
     const changeTodolistTitle = (newTitle: TodolistType["title"], todolistId: TodolistType["id"]) => {
-        const nextState: TodolistType[] = todolists.map(tl => tl.id === todolistId ? {...tl, title: newTitle} : tl)
-        setTodolists(nextState)
+        // const nextState: TodolistType[] = todolists.map(tl => tl.id === todolistId ? {...tl, title: newTitle} : tl)
+        // setTodolists(nextState)
+        const action = changeTodolistTitleAC({id: todolistId, title : newTitle})
+        dispatchTodolists(action)
     }
 
     const deleteTodolist = ( todolistId: TodolistType["id"]) => {
-        const nextState: TodolistType[] = todolists.filter(t => t.id !== todolistId)
-        setTodolists(nextState)
+        // const nextState: TodolistType[] = todolists.filter(t => t.id !== todolistId)
+        // setTodolists(nextState)
+        const action = deleteTodolistAC(todolistId)
+        dispatchTodolists(action)
+        // dispatchToTask
         delete tasks[todolistId]
     }
 
     //Функция  добавления Todolist нового
     const createTodolist = (todolistTitle: TodolistType["title"]) => {
-        const todolistId = v1()
-        const newTodolist: TodolistType = {
-            id: todolistId,
-            title: todolistTitle,
-            filter: "all"
-        }
-        setTodolists([...todolists, newTodolist])
-        setTasks({...tasks, [todolistId]: []})
+        // const todolistId = v1()
+        // const newTodolist: TodolistType = {
+        //     id: todolistId,
+        //     title: todolistTitle,
+        //     filter: "all"
+        // }
+        // setTodolists([...todolists, newTodolist])
+        const action = createTodolistAC(todolistTitle)
+        dispatchTodolists(action)
+        // dispatchToTasks(action)
+        setTasks({...tasks, [action.payload.id]: []})
     }
 
 
   //   UI (view)
+    const [isDarkMode, setDarkMode] = useState<boolean>(false);
+    const theme = createTheme(
+        {
+            palette: {
+                primary: teal,
+                secondary: amber,
+                mode: isDarkMode ? "dark" : "light"
+            },
+        }
+    )
+
+
     const todolistsComponents = todolists.map(tl => {
         let filteredTasks: Task[] = tasks[tl.id]
         if(tl.filter === "active") {
@@ -117,8 +156,8 @@ function App() {
         }
         return(
             <Grid key={tl.id}>
-                <Paper
-                    elevation={2}
+                <Paper sx={{p: "15px"}}
+                    elevation={6}
                 >
                     <Todolist
                         todolistId={tl.id}
@@ -145,23 +184,32 @@ function App() {
 
   return (
       <div className="app">
-          <AppBar position="static">
-              <Toolbar>
-                  <IconButton color="inherit">
-                      <MenuIcon />
-                  </IconButton>
-                  <Button color="inherit">Sign in</Button>
-              </Toolbar>
-          </AppBar>
-          <Container maxWidth={"lg"}>
-              <Grid container>
-                  <CreateItemForm createItem={createTodolist} itemTitleLength={20}/>
-              </Grid>
-              <Grid container spacing={3}>
-                  {todolistsComponents}
-              </Grid>
+          <ThemeProvider theme={theme}>
+              <CssBaseline/>
+              <AppBar position="static">
+                  <Toolbar sx={{justifyContent: "space-between"}}>
+                      <IconButton color="inherit">
+                          <MenuIcon />
+                      </IconButton>
+                      <Box>
+                          <NavButton>Sign in</NavButton>
+                          <NavButton>Sign out</NavButton>
+                          <NavButton background={theme.palette.secondary.main}>FAQ</NavButton>
+                          <Switch onChange={() => setDarkMode(!isDarkMode)}/>
+                      </Box>
+                  </Toolbar>
+              </AppBar>
+              <Container maxWidth={"lg"}>
+                  <Grid container sx={{padding: "15px", justifyContent: "center"}}>
+                      <CreateItemForm createItem={createTodolist} itemTitleLength={20}/>
+                  </Grid>
+                  <Grid container spacing={3}>
+                      {todolistsComponents}
+                  </Grid>
 
-          </Container>
+              </Container>
+          </ThemeProvider>
+
 
 
       </div>
