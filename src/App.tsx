@@ -20,6 +20,13 @@ import {
     deleteTodolistAC,
     todolistsReducer
 } from "./model/todolist-reducer.ts";
+import {
+    changeTaskStatusAC,
+    changeTaskTitleAC,
+    createTaskAC,
+    deleteTaskAC,
+    tasksReducer
+} from "./model/tasks-reducer.ts";
 
 //CRUD
 export type FilterValues = "all" | "active" | "completed";
@@ -51,7 +58,7 @@ function App() {
     ]);
 
 
-    let [tasks, setTasks] = useState<TasksState>({
+    let [tasks, dispatchTasks] = useReducer(tasksReducer, {
         [todolistId_1]: [
             { id: v1(), title: 'HTML&CSS', isDone: false },
             { id: v1(), title: 'JS', isDone: false },
@@ -73,24 +80,31 @@ function App() {
     const deleteTask = (taskId: Task['id'], todolistId: TodolistType["id"]) => {
         //1.Иммутабельно
         //2. Для обновления стейта используется setState
-        setTasks({...tasks, [todolistId]: tasks[todolistId].filter(t => t.id !== taskId)})
+        //setTasks({...tasks, [todolistId]: tasks[todolistId].filter(t => t.id !== taskId)})
+        const action = deleteTaskAC({taskId, todolistId})
+        dispatchTasks(action)
     }
     // create
     const createTask = (title: Task["title"], todolistId: TodolistType["id"]) => {
-        const newTask: Task = {id:v1(), title, isDone:false}
-        const newTasks = [...tasks[todolistId],  newTask]
-        setTasks({...tasks, [todolistId]: newTasks})
-
+        // const newTask: Task = {id:v1(), title, isDone:false}
+        // const newTasks = [...tasks[todolistId],  newTask]
+        // setTasks({...tasks, [todolistId]: newTasks})
+        const action = createTaskAC({todolistId, title})
+        dispatchTasks(action)
     }
   //   create(update) status task
     const changeTaskStatus = (taskId: Task['id'], newStatus: Task["isDone"], todolistId: string) => {
-        const updatedTasks: Task[] = tasks[todolistId].map(t => t.id === taskId ? {...t, isDone: newStatus } : t)
-        setTasks({...tasks, [todolistId]: updatedTasks})
+        // const updatedTasks: Task[] = tasks[todolistId].map(t => t.id === taskId ? {...t, isDone: newStatus } : t)
+        // setTasks({...tasks, [todolistId]: updatedTasks})
+        const action = changeTaskStatusAC({todolistId, taskId, newStatus})
+        dispatchTasks(action)
     }
 //  update task title
     const changeTaskTitle = (taskId: Task['id'], newTitle: Task["title"], todolistId: string) => {
-        const updatedTasks: Task[] = tasks[todolistId].map(t => t.id === taskId ? {...t, title: newTitle } : t)
-        setTasks({...tasks, [todolistId]: updatedTasks})
+        // const updatedTasks: Task[] = tasks[todolistId].map(t => t.id === taskId ? {...t, title: newTitle } : t)
+        // setTasks({...tasks, [todolistId]: updatedTasks})
+        const action = changeTaskTitleAC ({taskId, newTitle, todolistId})
+        dispatchTasks(action)
     }
 
 
@@ -113,8 +127,8 @@ function App() {
         // setTodolists(nextState)
         const action = deleteTodolistAC(todolistId)
         dispatchTodolists(action)
-        // dispatchToTask
-        delete tasks[todolistId]
+        dispatchTasks(action)
+         // delete tasks[todolistId]
     }
 
     //Функция  добавления Todolist нового
@@ -128,8 +142,8 @@ function App() {
         // setTodolists([...todolists, newTodolist])
         const action = createTodolistAC(todolistTitle)
         dispatchTodolists(action)
-        // dispatchToTasks(action)
-        setTasks({...tasks, [action.payload.id]: []})
+        dispatchTasks(action)
+        // setTasks({...tasks, [action.payload.id]: []})
     }
 
 
